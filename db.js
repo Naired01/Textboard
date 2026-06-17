@@ -19,14 +19,19 @@ db.exec(`
     password_hash TEXT,
     ttl_seconds INTEGER NOT NULL,
     created_at INTEGER NOT NULL,
-    expires_at INTEGER NOT NULL
+    expires_at INTEGER NOT NULL,
+    hidden_access INTEGER NOT NULL DEFAULT 0
   )
 `);
 
+try {
+  db.exec('ALTER TABLE notes ADD COLUMN hidden_access INTEGER NOT NULL DEFAULT 0');
+} catch (e) {}
+
 const stmts = {
   insert: db.prepare(`
-    INSERT OR REPLACE INTO notes (board_id, content, note, password_hash, ttl_seconds, created_at, expires_at)
-    VALUES (@board_id, @content, @note, @password_hash, @ttl_seconds, @created_at, @expires_at)
+    INSERT OR REPLACE INTO notes (board_id, content, note, password_hash, ttl_seconds, created_at, expires_at, hidden_access)
+    VALUES (@board_id, @content, @note, @password_hash, @ttl_seconds, @created_at, @expires_at, @hidden_access)
   `),
   getById: db.prepare('SELECT * FROM notes WHERE board_id = ?'),
   deleteById: db.prepare('DELETE FROM notes WHERE board_id = ?'),
@@ -34,7 +39,7 @@ const stmts = {
   updateContent: db.prepare('UPDATE notes SET content = ? WHERE board_id = ?'),
 };
 
-function saveNote({ boardId, content, note, password, ttlSeconds }) {
+function saveNote({ boardId, content, note, password, ttlSeconds, hiddenAccess }) {
   if (Buffer.byteLength(content, 'utf8') > MAX_CONTENT_SIZE) {
     throw new Error('CONTENT_TOO_LARGE');
   }
@@ -53,6 +58,7 @@ function saveNote({ boardId, content, note, password, ttlSeconds }) {
     ttl_seconds: ttlSeconds,
     created_at: now,
     expires_at: now + ttlSeconds,
+    hidden_access: hiddenAccess ? 1 : 0,
   });
 
   return { expiresAt: now + ttlSeconds };
@@ -68,10 +74,14 @@ function loadNote(boardId, password) {
     return { found: false, expired: true };
   }
 
+  let locked = false;
   if (row.password_hash) {
-    if (!password) return { found: true, locked: true };
-    const valid = bcrypt.compareSync(password, row.password_hash);
-    if (!valid) return { found: true, locked: true, badPassword: true };
+    if (!password) {
+      locked = true;
+    } else {
+      const valid = bcrypt.compareSync(password, row.password_hash);
+      if (!valid) return { found: true, locked: true, badPassword: true };
+    }
   }
 
   return {
@@ -79,6 +89,8 @@ function loadNote(boardId, password) {
     content: row.content,
     note: row.note,
     hasPassword: !!row.password_hash,
+    locked,
+    hiddenAccess: !!row.hidden_access,
     expiresAt: row.expires_at,
     ttlSeconds: row.ttl_seconds,
     createdAt: row.created_at,
@@ -121,6 +133,7 @@ function getNoteMeta(boardId) {
     note: row.note,
     expiresAt: row.expires_at,
     ttlSeconds: row.ttl_seconds,
+    hiddenAccess: !!row.hidden_access,
   };
 }
 

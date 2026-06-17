@@ -25,12 +25,17 @@ const noteLockIcon = document.getElementById('note-lock-icon');
 const modalOverlay = document.getElementById('modal-overlay');
 const modalSave = document.getElementById('modal-save');
 const modalPassword = document.getElementById('modal-password');
+const lockedBanner = document.getElementById('locked-banner');
+const btnUnlock = document.getElementById('btn-unlock');
+const hiddenOverlay = document.getElementById('hidden-overlay');
 
 const path = window.location.pathname.replace('/', '');
 const boardId = path || 'main';
 let isMarkdownView = false;
 let currentNoteMeta = null;
 let isLocked = false;
+let isHiddenAccess = false;
+let isRevealed = false;
 let expiryTimer = null;
 
 if (boardId !== 'main') {
@@ -65,13 +70,34 @@ socket.on('note-meta', (meta) => {
   currentNoteMeta = meta;
   showNoteInfo(meta);
   btnDeleteNote.classList.remove('hidden');
-});
 
-socket.on('note-locked', () => {
-  isLocked = true;
-  editor.disabled = true;
-  editor.placeholder = '🔒 Esta nota está protegida con contraseña';
-  showPasswordModal();
+  if (meta.locked) {
+    isLocked = true;
+    editor.disabled = true;
+    editor.readOnly = true;
+    editor.placeholder = 'Nota protegida — ingresa la contraseña para editar';
+    btnDeleteNote.disabled = true;
+    btnClear.disabled = true;
+    lockedBanner.classList.remove('hidden');
+  } else {
+    isLocked = false;
+    editor.disabled = false;
+    editor.readOnly = false;
+    editor.placeholder = 'Escribe algo aquí...';
+    btnDeleteNote.disabled = false;
+    btnClear.disabled = false;
+    lockedBanner.classList.add('hidden');
+  }
+
+  if (meta.hiddenAccess && !isRevealed) {
+    isHiddenAccess = true;
+    hiddenOverlay.classList.remove('hidden');
+    editor.classList.add('editor-blurred');
+  } else if (!meta.hiddenAccess || isRevealed) {
+    isHiddenAccess = false;
+    hiddenOverlay.classList.add('hidden');
+    editor.classList.remove('editor-blurred');
+  }
 });
 
 socket.on('error', (msg) => {
@@ -79,12 +105,14 @@ socket.on('error', (msg) => {
 });
 
 editor.addEventListener('input', () => {
+  if (isLocked) return;
   socket.emit('update', editor.value);
 });
 
 btnClear.addEventListener('click', () => {
+  if (isLocked) return;
   socket.emit('clear');
-  showToast('🗑️ Texto limpiado');
+  showToast('Texto limpiado');
 });
 
 btnCopy.addEventListener('click', async () => {
@@ -179,16 +207,17 @@ btnSave.addEventListener('click', () => {
 });
 
 btnDeleteNote.addEventListener('click', async () => {
-  if (boardId === 'main') return;
+  if (boardId === 'main' || isLocked) return;
   if (!confirm('¿Eliminar esta nota guardada?')) return;
   try {
     await fetch(`/api/notes/${boardId}`, { method: 'DELETE' });
     btnDeleteNote.classList.add('hidden');
     noteInfo.classList.add('hidden');
+    lockedBanner.classList.add('hidden');
     currentNoteMeta = null;
-    showToast('❌ Nota eliminada');
+    showToast('Nota eliminada');
   } catch {
-    showToast('❌ Error al eliminar');
+    showToast('Error al eliminar');
   }
 });
 
@@ -197,9 +226,10 @@ document.getElementById('modal-save-confirm').addEventListener('click', async ()
   const password = document.getElementById('save-password').value;
   const passwordConfirm = document.getElementById('save-password-confirm').value;
   const ttlSeconds = parseInt(document.getElementById('save-ttl').value);
+  const hiddenAccess = document.getElementById('save-hidden-access').checked;
 
   if (password && password !== passwordConfirm) {
-    showToast('⚠️ Las contraseñas no coinciden');
+    showToast('Las contraseñas no coinciden');
     return;
   }
 
@@ -213,6 +243,7 @@ document.getElementById('modal-save-confirm').addEventListener('click', async ()
         note,
         password: password || null,
         ttlSeconds,
+        hiddenAccess,
       }),
     });
 
@@ -224,12 +255,27 @@ document.getElementById('modal-save-confirm').addEventListener('click', async ()
 
     const data = await res.json();
     closeModal();
-    currentNoteMeta = { note, hasPassword: !!password, expiresAt: data.expiresAt, ttlSeconds };
+    currentNoteMeta = { note, hasPassword: !!password, expiresAt: data.expiresAt, ttlSeconds, locked: false, hiddenAccess };
     showNoteInfo(currentNoteMeta);
     btnDeleteNote.classList.remove('hidden');
-    showToast('💾 Nota guardada');
+    isLocked = false;
+    isHiddenAccess = hiddenAccess;
+    isRevealed = false;
+    editor.disabled = false;
+    editor.readOnly = false;
+    btnDeleteNote.disabled = false;
+    btnClear.disabled = false;
+    lockedBanner.classList.add('hidden');
+    if (hiddenAccess) {
+      hiddenOverlay.classList.remove('hidden');
+      editor.classList.add('editor-blurred');
+    } else {
+      hiddenOverlay.classList.add('hidden');
+      editor.classList.remove('editor-blurred');
+    }
+    showToast('Nota guardada');
   } catch {
-    showToast('❌ Error al guardar');
+    showToast('Error al guardar');
   }
 });
 
@@ -240,15 +286,19 @@ document.getElementById('modal-unlock-confirm').addEventListener('click', () => 
   const password = document.getElementById('unlock-password').value;
   socket.emit('unlock-note', { boardId, password }, (response) => {
     if (response.error) {
-      showToast('🔒 Contraseña incorrecta');
+      showToast(response.error);
       document.getElementById('unlock-password').value = '';
       return;
     }
     isLocked = false;
     editor.disabled = false;
+    editor.readOnly = false;
     editor.placeholder = 'Escribe algo aquí...';
+    btnDeleteNote.disabled = false;
+    btnClear.disabled = false;
+    lockedBanner.classList.add('hidden');
     closeModal();
-    showToast('🔓 Nota desbloqueada');
+    showToast('Nota desbloqueada');
   });
 });
 
@@ -259,10 +309,22 @@ modalOverlay.addEventListener('click', (e) => {
   if (e.target === modalOverlay) closeModal();
 });
 
+btnUnlock.addEventListener('click', () => {
+  showPasswordModal();
+});
+
+hiddenOverlay.addEventListener('click', () => {
+  isRevealed = true;
+  isHiddenAccess = false;
+  hiddenOverlay.classList.add('hidden');
+  editor.classList.remove('editor-blurred');
+});
+
 function showSaveModal() {
   document.getElementById('save-note').value = currentNoteMeta?.note || '';
   document.getElementById('save-password').value = '';
   document.getElementById('save-password-confirm').value = '';
+  document.getElementById('save-hidden-access').checked = false;
   modalSave.classList.remove('hidden');
   modalPassword.classList.add('hidden');
   modalOverlay.classList.remove('hidden');

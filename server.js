@@ -35,11 +35,11 @@ app.get('/api/generate-id', (req, res) => {
 
 app.post('/api/notes', (req, res) => {
   try {
-    const { boardId, content, note, password, ttlSeconds } = req.body;
+    const { boardId, content, note, password, ttlSeconds, hiddenAccess } = req.body;
     if (!boardId || typeof content !== 'string' || !ttlSeconds) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-    const result = db.saveNote({ boardId, content, note, password, ttlSeconds });
+    const result = db.saveNote({ boardId, content, note, password, ttlSeconds, hiddenAccess });
     boards.set(boardId, content);
     io.to(boardId).emit('content', content);
     res.json({ ok: true, expiresAt: result.expiresAt });
@@ -62,14 +62,13 @@ app.get('/api/notes/:boardId', (req, res) => {
   if (!result.found) {
     return res.status(404).json({ error: 'Note not found or expired' });
   }
-  if (result.locked) {
-    return res.status(403).json({ error: 'Password required', badPassword: !!result.badPassword });
-  }
 
   res.json({
     content: result.content,
     note: result.note,
     hasPassword: result.hasPassword,
+    locked: result.locked || false,
+    hiddenAccess: result.hiddenAccess || false,
     expiresAt: result.expiresAt,
     ttlSeconds: result.ttlSeconds,
     createdAt: result.createdAt,
@@ -111,7 +110,7 @@ io.on('connection', (socket) => {
 
     if (currentBoard !== 'main') {
       const result = db.loadNote(currentBoard, null);
-      if (result.found && !result.locked) {
+      if (result.found) {
         boards.set(currentBoard, result.content);
         socket.emit('content', result.content);
         socket.emit('note-meta', {
@@ -119,11 +118,9 @@ io.on('connection', (socket) => {
           hasPassword: result.hasPassword,
           expiresAt: result.expiresAt,
           ttlSeconds: result.ttlSeconds,
+          locked: result.locked || false,
+          hiddenAccess: result.hiddenAccess || false,
         });
-        return;
-      }
-      if (result.found && result.locked) {
-        socket.emit('note-locked', true);
         return;
       }
     }
@@ -169,6 +166,8 @@ io.on('connection', (socket) => {
       hasPassword: result.hasPassword,
       expiresAt: result.expiresAt,
       ttlSeconds: result.ttlSeconds,
+      locked: false,
+      hiddenAccess: result.hiddenAccess || false,
     });
     if (typeof callback === 'function') callback({ ok: true });
   });
