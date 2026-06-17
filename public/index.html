@@ -13,7 +13,15 @@
       <span id="board-label" class="board-label">Tablero principal</span>
     </header>
 
+    <div id="note-info" class="note-info hidden">
+      <span id="note-text"></span>
+      <span id="note-expiry" class="note-expiry"></span>
+      <span id="note-lock-icon" class="hidden">&#128274;</span>
+    </div>
+
     <textarea id="editor" placeholder="Escribe algo..."></textarea>
+
+    <div id="markdown-preview" class="markdown-preview hidden"></div>
 
     <div class="actions">
       <button id="btn-copy" title="Copiar texto">Copiar</button>
@@ -21,6 +29,13 @@
       <button id="btn-generate" title="Generar URL personalizada">Generar URL</button>
       <button id="btn-share" title="Compartir URL" disabled>Compartir</button>
       <button id="btn-qr" title="Generar código QR" disabled>QR</button>
+      <button id="btn-download" title="Descargar tablero">Descargar</button>
+      <button id="btn-markdown" title="Vista Markdown">Markdown</button>
+    </div>
+
+    <div class="actions">
+      <button id="btn-save" title="Guardar nota" disabled>Guardar nota</button>
+      <button id="btn-delete-note" title="Eliminar nota guardada" class="hidden">Eliminar nota</button>
     </div>
 
     <div id="url-section" class="url-section hidden">
@@ -35,7 +50,56 @@
     <div id="toast" class="toast hidden"></div>
   </div>
 
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal" id="modal-save">
+      <h3>Guardar nota</h3>
+      <label>Nota (descripción):
+        <input id="save-note" type="text" placeholder="Descripción opcional" maxlength="200">
+      </label>
+      <label>Contraseña (opcional):
+        <input id="save-password" type="password" placeholder="Dejar vacío sin contraseña">
+      </label>
+      <label>Confirmar contraseña:
+        <input id="save-password-confirm" type="password" placeholder="Repetir contraseña">
+      </label>
+      <label>Tiempo disponible:
+        <select id="save-ttl">
+          <option value="300">5 minutos</option>
+          <option value="900">15 minutos</option>
+          <option value="1800">30 minutos</option>
+          <option value="3600" selected>1 hora</option>
+          <option value="7200">2 horas</option>
+          <option value="14400">4 horas</option>
+          <option value="28800">8 horas</option>
+          <option value="43200">12 horas</option>
+          <option value="86400">1 día</option>
+          <option value="172800">2 días</option>
+          <option value="604800">7 días</option>
+          <option value="1209600">14 días</option>
+          <option value="2592000">30 días</option>
+        </select>
+      </label>
+      <div class="modal-actions">
+        <button id="modal-save-confirm" class="btn-primary">Guardar</button>
+        <button id="modal-save-cancel">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="modal-password">
+      <h3>Nota protegida</h3>
+      <p>Esta nota está protegida con contraseña.</p>
+      <label>Contraseña:
+        <input id="unlock-password" type="password" placeholder="Ingresa la contraseña">
+      </label>
+      <div class="modal-actions">
+        <button id="modal-unlock-confirm" class="btn-primary">Desbloquear</button>
+        <button id="modal-unlock-cancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

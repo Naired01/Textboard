@@ -41,6 +41,33 @@ h1 {
   border-radius: 4px;
 }
 
+.note-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #1a1d27;
+  border: 1px solid #2a2d3a;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
+  flex-wrap: wrap;
+}
+
+#note-text {
+  color: #4a6cf7;
+  font-weight: 500;
+}
+
+.note-expiry {
+  color: #f0a500;
+  font-family: monospace;
+}
+
+#note-lock-icon {
+  font-size: 1rem;
+}
+
 #editor {
   width: 100%;
   min-height: 300px;
@@ -59,6 +86,88 @@ h1 {
 
 #editor:focus {
   border-color: #4a6cf7;
+}
+
+.markdown-preview {
+  width: 100%;
+  min-height: 300px;
+  background: #1a1d27;
+  border: 1px solid #2a2d3a;
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-size: 1rem;
+  padding: 1rem;
+  line-height: 1.6;
+  overflow-y: auto;
+}
+
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3 {
+  color: #fff;
+  margin: 0.75em 0 0.5em;
+}
+
+.markdown-preview h1 { font-size: 1.5em; }
+.markdown-preview h2 { font-size: 1.3em; }
+.markdown-preview h3 { font-size: 1.1em; }
+
+.markdown-preview p {
+  margin: 0.5em 0;
+}
+
+.markdown-preview code {
+  background: #252836;
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.markdown-preview pre {
+  background: #252836;
+  padding: 0.75em;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+
+.markdown-preview pre code {
+  background: none;
+  padding: 0;
+}
+
+.markdown-preview a {
+  color: #4a6cf7;
+}
+
+.markdown-preview blockquote {
+  border-left: 3px solid #4a6cf7;
+  padding-left: 0.75em;
+  margin: 0.5em 0;
+  color: #aaa;
+}
+
+.markdown-preview ul,
+.markdown-preview ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.markdown-preview table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5em 0;
+}
+
+.markdown-preview th,
+.markdown-preview td {
+  border: 1px solid #2a2d3a;
+  padding: 0.4em 0.6em;
+  text-align: left;
+}
+
+.markdown-preview th {
+  background: #252836;
 }
 
 .actions {
@@ -107,6 +216,46 @@ button:disabled {
 #btn-generate:hover {
   background: #4a6cf715;
   border-color: #4a6cf7;
+}
+
+#btn-save {
+  border-color: #2ecc7144;
+  color: #2ecc71;
+}
+
+#btn-save:hover:not(:disabled) {
+  background: #2ecc7115;
+  border-color: #2ecc71;
+}
+
+#btn-delete-note {
+  border-color: #e74c3c44;
+  color: #e74c3c;
+}
+
+#btn-delete-note:hover {
+  background: #e74c3c15;
+  border-color: #e74c3c;
+}
+
+#btn-markdown {
+  border-color: #9b59b644;
+  color: #9b59b6;
+}
+
+#btn-markdown:hover {
+  background: #9b59b615;
+  border-color: #9b59b6;
+}
+
+#btn-download {
+  border-color: #f0a50044;
+  color: #f0a500;
+}
+
+#btn-download:hover {
+  background: #f0a50015;
+  border-color: #f0a500;
 }
 
 .url-section {
@@ -163,6 +312,82 @@ button:disabled {
   15% { opacity: 1; transform: translateX(-50%) translateY(0); }
   85% { opacity: 1; transform: translateX(-50%) translateY(0); }
   100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal {
+  background: #1a1d27;
+  border: 1px solid #2a2d3a;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 400px;
+}
+
+.modal h3 {
+  color: #fff;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.modal p {
+  color: #aaa;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.modal label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.modal input,
+.modal select {
+  width: 100%;
+  margin-top: 0.3rem;
+  background: #0f1117;
+  border: 1px solid #2a2d3a;
+  border-radius: 6px;
+  color: #e0e0e0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.modal input:focus,
+.modal select:focus {
+  border-color: #4a6cf7;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  justify-content: flex-end;
+}
+
+.btn-primary {
+  background: #4a6cf7 !important;
+  color: #fff !important;
+  border-color: #4a6cf7 !important;
+}
+
+.btn-primary:hover {
+  background: #3a5ce5 !important;
 }
 
 @media (max-width: 500px) {
