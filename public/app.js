@@ -34,7 +34,7 @@ let isLocked = false;
 let expiryTimer = null;
 
 if (boardId !== 'main') {
-  boardLabel.textContent = `Tablero: ${boardId.substring(0, 8)}...`;
+  boardLabel.textContent = `📌 ${boardId.substring(0, 8)}...`;
   btnGenerate.classList.add('hidden');
   urlSection.classList.remove('hidden');
   generatedUrl.value = window.location.href;
@@ -70,7 +70,7 @@ socket.on('note-meta', (meta) => {
 socket.on('note-locked', () => {
   isLocked = true;
   editor.disabled = true;
-  editor.placeholder = 'Esta nota está protegida con contraseña';
+  editor.placeholder = '🔒 Esta nota está protegida con contraseña';
   showPasswordModal();
 });
 
@@ -84,12 +84,12 @@ editor.addEventListener('input', () => {
 
 btnClear.addEventListener('click', () => {
   socket.emit('clear');
-  showToast('Texto limpiado');
+  showToast('🗑️ Texto limpiado');
 });
 
 btnCopy.addEventListener('click', async () => {
   await copyText(editor.value);
-  showToast('Texto copiado');
+  showToast('📋 Texto copiado');
 });
 
 btnGenerate.addEventListener('click', async () => {
@@ -103,15 +103,15 @@ btnGenerate.addEventListener('click', async () => {
     btnQr.disabled = false;
     btnSave.disabled = false;
     window.history.replaceState(null, '', `/${data.id}`);
-    showToast('URL generada');
+    showToast('🔗 URL generada');
   } catch {
-    showToast('Error al generar URL');
+    showToast('❌ Error al generar URL');
   }
 });
 
 btnCopyUrl.addEventListener('click', async () => {
   await copyText(generatedUrl.value);
-  showToast('URL copiada');
+  showToast('📋 URL copiada');
 });
 
 btnShare.addEventListener('click', async () => {
@@ -122,7 +122,7 @@ btnShare.addEventListener('click', async () => {
     } catch {}
   } else {
     await copyText(url);
-    showToast('URL copiada al portapapeles');
+    showToast('📤 URL copiada al portapapeles');
   }
 });
 
@@ -137,14 +137,14 @@ btnQr.addEventListener('click', async () => {
     qrImage.src = data.qr;
     qrSection.classList.toggle('hidden');
   } catch {
-    showToast('Error al generar QR');
+    showToast('❌ Error al generar QR');
   }
 });
 
 btnDownload.addEventListener('click', () => {
   const text = editor.value;
   if (!text) {
-    showToast('No hay contenido para descargar');
+    showToast('⚠️ No hay contenido para descargar');
     return;
   }
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
@@ -156,7 +156,7 @@ btnDownload.addEventListener('click', () => {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast('Archivo descargado');
+  showToast('💾 Archivo descargado');
 });
 
 btnMarkdown.addEventListener('click', () => {
@@ -165,11 +165,11 @@ btnMarkdown.addEventListener('click', () => {
     renderMarkdown(editor.value);
     markdownPreview.classList.remove('hidden');
     editor.classList.add('hidden');
-    btnMarkdown.textContent = 'Editor';
+    btnMarkdown.innerHTML = '✏️ Editor';
   } else {
     markdownPreview.classList.add('hidden');
     editor.classList.remove('hidden');
-    btnMarkdown.textContent = 'Markdown';
+    btnMarkdown.innerHTML = '👁️ Markdown';
   }
 });
 
@@ -186,9 +186,9 @@ btnDeleteNote.addEventListener('click', async () => {
     btnDeleteNote.classList.add('hidden');
     noteInfo.classList.add('hidden');
     currentNoteMeta = null;
-    showToast('Nota eliminada');
+    showToast('❌ Nota eliminada');
   } catch {
-    showToast('Error al eliminar');
+    showToast('❌ Error al eliminar');
   }
 });
 
@@ -199,7 +199,7 @@ document.getElementById('modal-save-confirm').addEventListener('click', async ()
   const ttlSeconds = parseInt(document.getElementById('save-ttl').value);
 
   if (password && password !== passwordConfirm) {
-    showToast('Las contraseñas no coinciden');
+    showToast('⚠️ Las contraseñas no coinciden');
     return;
   }
 
@@ -227,30 +227,33 @@ document.getElementById('modal-save-confirm').addEventListener('click', async ()
     currentNoteMeta = { note, hasPassword: !!password, expiresAt: data.expiresAt, ttlSeconds };
     showNoteInfo(currentNoteMeta);
     btnDeleteNote.classList.remove('hidden');
-    showToast('Nota guardada');
+    showToast('💾 Nota guardada');
   } catch {
-    showToast('Error al guardar');
+    showToast('❌ Error al guardar');
   }
 });
 
 document.getElementById('modal-save-cancel').addEventListener('click', closeModal);
+document.getElementById('modal-save-close').addEventListener('click', closeModal);
 
 document.getElementById('modal-unlock-confirm').addEventListener('click', () => {
   const password = document.getElementById('unlock-password').value;
   socket.emit('unlock-note', { boardId, password }, (response) => {
     if (response.error) {
-      showToast(response.error);
+      showToast('🔒 Contraseña incorrecta');
       document.getElementById('unlock-password').value = '';
       return;
     }
     isLocked = false;
     editor.disabled = false;
-    editor.placeholder = 'Escribe algo...';
+    editor.placeholder = 'Escribe algo aquí...';
     closeModal();
+    showToast('🔓 Nota desbloqueada');
   });
 });
 
 document.getElementById('modal-unlock-cancel').addEventListener('click', closeModal);
+document.getElementById('modal-unlock-close').addEventListener('click', closeModal);
 
 modalOverlay.addEventListener('click', (e) => {
   if (e.target === modalOverlay) closeModal();
@@ -280,7 +283,7 @@ function closeModal() {
 
 function showNoteInfo(meta) {
   noteInfo.classList.remove('hidden');
-  noteText.textContent = meta.note || '';
+  noteText.textContent = meta.note || 'Sin descripción';
   noteLockIcon.classList.toggle('hidden', !meta.hasPassword);
   updateExpiry(meta.expiresAt);
   if (expiryTimer) clearInterval(expiryTimer);
@@ -291,7 +294,7 @@ function updateExpiry(expiresAt) {
   const now = Math.floor(Date.now() / 1000);
   const remaining = expiresAt - now;
   if (remaining <= 0) {
-    noteExpiry.textContent = 'Expirada';
+    noteExpiry.textContent = '⏰ Expirada';
     if (expiryTimer) clearInterval(expiryTimer);
     return;
   }
@@ -304,7 +307,7 @@ function updateExpiry(expiresAt) {
   if (hours > 0 || days > 0) text += `${hours}h `;
   if (minutes > 0 || hours > 0 || days > 0) text += `${minutes}m `;
   text += `${seconds}s`;
-  noteExpiry.textContent = `Expira en: ${text}`;
+  noteExpiry.textContent = `⏳ Expira en: ${text}`;
 }
 
 function renderMarkdown(text) {
@@ -340,5 +343,5 @@ function showToast(msg) {
   toast.style.animation = 'none';
   void toast.offsetWidth;
   toast.style.animation = '';
-  setTimeout(() => toast.classList.add('hidden'), 2000);
+  setTimeout(() => toast.classList.add('hidden'), 2500);
 }

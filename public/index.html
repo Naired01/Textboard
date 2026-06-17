@@ -9,42 +9,69 @@
 <body>
   <div class="container">
     <header>
-      <h1>Textboard</h1>
-      <span id="board-label" class="board-label">Tablero principal</span>
+      <div class="header-content">
+        <h1>📋 Textboard</h1>
+        <span id="board-label" class="board-label">🏠 Tablero principal</span>
+      </div>
     </header>
 
     <div id="note-info" class="note-info hidden">
-      <span id="note-text"></span>
-      <span id="note-expiry" class="note-expiry"></span>
-      <span id="note-lock-icon" class="hidden">&#128274;</span>
+      <div class="note-info-row">
+        <span class="note-icon">📝</span>
+        <span id="note-text" class="note-text"></span>
+      </div>
+      <div class="note-info-row">
+        <span class="note-icon">⏳</span>
+        <span id="note-expiry" class="note-expiry"></span>
+      </div>
+      <span id="note-lock-icon" class="note-lock hidden">🔒</span>
     </div>
 
-    <textarea id="editor" placeholder="Escribe algo..."></textarea>
+    <textarea id="editor" placeholder="Escribe algo aquí..."></textarea>
 
     <div id="markdown-preview" class="markdown-preview hidden"></div>
 
-    <div class="actions">
-      <button id="btn-copy" title="Copiar texto">Copiar</button>
-      <button id="btn-clear" title="Limpiar texto">Limpiar</button>
-      <button id="btn-generate" title="Generar URL personalizada">Generar URL</button>
-      <button id="btn-share" title="Compartir URL" disabled>Compartir</button>
-      <button id="btn-qr" title="Generar código QR" disabled>QR</button>
-      <button id="btn-download" title="Descargar tablero">Descargar</button>
-      <button id="btn-markdown" title="Vista Markdown">Markdown</button>
-    </div>
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <div class="toolbar-label">📝 Texto</div>
+        <div class="toolbar-buttons">
+          <button id="btn-copy" class="btn" title="Copiar texto">📋 Copiar</button>
+          <button id="btn-clear" class="btn btn-danger" title="Limpiar texto">🗑️ Limpiar</button>
+          <button id="btn-download" class="btn btn-warning" title="Descargar contenido">💾 Descargar</button>
+          <button id="btn-markdown" class="btn btn-purple" title="Vista previa Markdown">👁️ Markdown</button>
+        </div>
+      </div>
 
-    <div class="actions">
-      <button id="btn-save" title="Guardar nota" disabled>Guardar nota</button>
-      <button id="btn-delete-note" title="Eliminar nota guardada" class="hidden">Eliminar nota</button>
+      <div class="toolbar-group">
+        <div class="toolbar-label">🔗 Compartir</div>
+        <div class="toolbar-buttons">
+          <button id="btn-generate" class="btn btn-primary" title="Generar URL única">🔗 Generar URL</button>
+          <button id="btn-share" class="btn btn-info" title="Compartir enlace" disabled>📤 Compartir</button>
+          <button id="btn-qr" class="btn btn-info" title="Código QR" disabled>📱 QR</button>
+        </div>
+      </div>
+
+      <div class="toolbar-group">
+        <div class="toolbar-label">💾 Notas</div>
+        <div class="toolbar-buttons">
+          <button id="btn-save" class="btn btn-success" title="Guardar nota" disabled>💾 Guardar nota</button>
+          <button id="btn-delete-note" class="btn btn-danger hidden" title="Eliminar nota">❌ Eliminar nota</button>
+        </div>
+      </div>
     </div>
 
     <div id="url-section" class="url-section hidden">
-      <input id="generated-url" type="text" readonly>
-      <button id="btn-copy-url" title="Copiar URL">Copiar URL</button>
+      <div class="url-input-wrapper">
+        <span class="url-icon">🔗</span>
+        <input id="generated-url" type="text" readonly>
+      </div>
+      <button id="btn-copy-url" class="btn btn-primary" title="Copiar URL">📋 Copiar URL</button>
     </div>
 
     <div id="qr-section" class="qr-section hidden">
-      <img id="qr-image" alt="Código QR">
+      <div class="qr-wrapper">
+        <img id="qr-image" alt="Código QR">
+      </div>
     </div>
 
     <div id="toast" class="toast hidden"></div>
@@ -52,48 +79,63 @@
 
   <div id="modal-overlay" class="modal-overlay hidden">
     <div class="modal" id="modal-save">
-      <h3>Guardar nota</h3>
-      <label>Nota (descripción):
-        <input id="save-note" type="text" placeholder="Descripción opcional" maxlength="200">
-      </label>
-      <label>Contraseña (opcional):
-        <input id="save-password" type="password" placeholder="Dejar vacío sin contraseña">
-      </label>
-      <label>Confirmar contraseña:
-        <input id="save-password-confirm" type="password" placeholder="Repetir contraseña">
-      </label>
-      <label>Tiempo disponible:
-        <select id="save-ttl">
-          <option value="300">5 minutos</option>
-          <option value="900">15 minutos</option>
-          <option value="1800">30 minutos</option>
-          <option value="3600" selected>1 hora</option>
-          <option value="7200">2 horas</option>
-          <option value="14400">4 horas</option>
-          <option value="28800">8 horas</option>
-          <option value="43200">12 horas</option>
-          <option value="86400">1 día</option>
-          <option value="172800">2 días</option>
-          <option value="604800">7 días</option>
-          <option value="1209600">14 días</option>
-          <option value="2592000">30 días</option>
-        </select>
-      </label>
-      <div class="modal-actions">
-        <button id="modal-save-confirm" class="btn-primary">Guardar</button>
-        <button id="modal-save-cancel">Cancelar</button>
+      <div class="modal-header">
+        <h3>💾 Guardar nota</h3>
+        <button class="modal-close" id="modal-save-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="save-note">📝 Descripción</label>
+          <input id="save-note" type="text" placeholder="Describe tu nota..." maxlength="200">
+        </div>
+        <div class="form-group">
+          <label for="save-password">🔒 Contraseña (opcional)</label>
+          <input id="save-password" type="password" placeholder="Proteger con contraseña">
+        </div>
+        <div class="form-group">
+          <label for="save-password-confirm">🔐 Confirmar contraseña</label>
+          <input id="save-password-confirm" type="password" placeholder="Repite la contraseña">
+        </div>
+        <div class="form-group">
+          <label for="save-ttl">⏰ Tiempo disponible</label>
+          <select id="save-ttl">
+            <option value="300">⚡ 5 minutos</option>
+            <option value="900">⚡ 15 minutos</option>
+            <option value="1800">⚡ 30 minutos</option>
+            <option value="3600" selected>🕐 1 hora</option>
+            <option value="7200">🕑 2 horas</option>
+            <option value="14400">🕓 4 horas</option>
+            <option value="28800">🕗 8 horas</option>
+            <option value="43200">🕛 12 horas</option>
+            <option value="86400">📅 1 día</option>
+            <option value="172800">📅 2 días</option>
+            <option value="604800">📅 7 días</option>
+            <option value="1209600">📅 14 días</option>
+            <option value="2592000">📅 30 días</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="modal-save-cancel" class="btn">Cancelar</button>
+        <button id="modal-save-confirm" class="btn btn-success">💾 Guardar</button>
       </div>
     </div>
 
     <div class="modal hidden" id="modal-password">
-      <h3>Nota protegida</h3>
-      <p>Esta nota está protegida con contraseña.</p>
-      <label>Contraseña:
-        <input id="unlock-password" type="password" placeholder="Ingresa la contraseña">
-      </label>
-      <div class="modal-actions">
-        <button id="modal-unlock-confirm" class="btn-primary">Desbloquear</button>
-        <button id="modal-unlock-cancel">Cancelar</button>
+      <div class="modal-header">
+        <h3>🔒 Nota protegida</h3>
+        <button class="modal-close" id="modal-unlock-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Esta nota está protegida con contraseña. Ingresa la contraseña para desbloquearla.</p>
+        <div class="form-group">
+          <label for="unlock-password">🔑 Contraseña</label>
+          <input id="unlock-password" type="password" placeholder="Ingresa la contraseña">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="modal-unlock-cancel" class="btn">Cancelar</button>
+        <button id="modal-unlock-confirm" class="btn btn-primary">🔓 Desbloquear</button>
       </div>
     </div>
   </div>
