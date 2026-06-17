@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Textboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Textboard</h1>
+      <span id="board-label" class="board-label">Tablero principal</span>
+    </header>
+
+    <textarea id="editor" placeholder="Escribe algo..."></textarea>
+
+    <div class="actions">
+      <button id="btn-copy" title="Copiar texto">Copiar</button>
+      <button id="btn-clear" title="Limpiar texto">Limpiar</button>
+      <button id="btn-generate" title="Generar URL personalizada">Generar URL</button>
+      <button id="btn-share" title="Compartir URL" disabled>Compartir</button>
+      <button id="btn-qr" title="Generar código QR" disabled>QR</button>
+    </div>
+
+    <div id="url-section" class="url-section hidden">
+      <input id="generated-url" type="text" readonly>
+      <button id="btn-copy-url" title="Copiar URL">Copiar URL</button>
+    </div>
+
+    <div id="qr-section" class="qr-section hidden">
+      <img id="qr-image" alt="Código QR">
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
