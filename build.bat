@@ -16,8 +16,12 @@ if %ERRORLEVEL% neq 0 (
 )
 
 echo.
-echo Build complete. Run with:
-echo   docker run -p 3000:3000 textboard:latest
+echo Build complete.
 echo.
-echo Or with docker-compose:
+echo Run with docker-compose (recommended):
 echo   docker-compose up -d
+echo.
+echo Or with docker run:
+echo   docker run -p 3000:3000 -v .\data:/app/data -e DB_PATH=/app/data/textboard.db textboard:latest
+echo.
+echo Database will be stored in .\data\textboard.db

@@ -2,7 +2,7 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-const DB_PATH = path.join(__dirname, 'textboard.db');
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'textboard.db');
 const MAX_CONTENT_SIZE = 5 * 1024 * 1024;
 const MAX_TTL_SECONDS = 30 * 24 * 60 * 60;
 const SALT_ROUNDS = 10;
