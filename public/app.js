@@ -1,3 +1,10 @@
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}
+
+window.addEventListener('online', () => showToast('Conexi\u00f3n restaurada'));
+window.addEventListener('offline', () => showToast('Sin conexi\u00f3n \u2014 los cambios se sincronizar\u00e1n al reconectar'));
+
 const socket = io();
 
 const editor = document.getElementById('editor');

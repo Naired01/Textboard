@@ -14,6 +14,12 @@ const PORT = process.env.PORT || 3000;
 const boards = new Map();
 
 app.use(express.json({ limit: '6mb' }));
+
+app.get('/manifest.json', (req, res) => {
+  res.type('application/manifest+json');
+  res.sendFile(path.join(__dirname, 'public', 'manifest.json'));
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/api/qr/:boardId', async (req, res) => {
